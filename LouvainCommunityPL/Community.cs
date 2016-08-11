@@ -41,9 +41,9 @@ namespace LouvainCommunityPL
             return dendro.PartitionAtLevel(dendro.Length - 1);
         }
 
-        public static Dendrogram GenerateDendrogram(Graph graph)
+        static Dendrogram GenerateDendrogram(Graph graph)
         {
-            Dictionary<int, int> partition;
+            IDictionary<int, int> partition;
 
             // Special case, when there is no link, the best partition is everyone in its own community.
             if (graph.NumberOfEdges == 0)
@@ -54,22 +54,22 @@ namespace LouvainCommunityPL
                 {
                     partition[node] = i++;
                 }
+
                 return new Dendrogram(partition);
             }
 
-            Graph current_graph = new Graph(graph);
+            var current_graph = new Graph(graph);
+
             Status status = new Status(current_graph);
             double mod = status.Modularity;
-            List<Dictionary<int, int>> status_list = new List<Dictionary<int, int>>();
+            var status_list = new List<IDictionary<int, int>>();
             OneLevel(current_graph, status);
             double new_mod;
             new_mod = status.Modularity;
-
-            int iterations = 1;
+            
             do
             {
-                iterations++;
-                partition = Renumber(status.Node2Com);
+                partition = Renumber(status.CurrentPartition);
                 status_list.Add(partition);
                 mod = new_mod;
                 current_graph = current_graph.Quotient(partition);
@@ -78,27 +78,34 @@ namespace LouvainCommunityPL
                 new_mod = status.Modularity;
             }
             while (new_mod - mod >= MIN);
-            //Console.Out.WriteLine("(GenerateDendrogram: {0} iterations in {1})", iterations, stopwatch.Elapsed);
 
             return new Dendrogram(status_list);
         }
 
-        private static Dictionary<A, int> Renumber<A>(Dictionary<A, int> dict)
+        /// <summary>
+        /// Renumbers the communities in the specified partition
+        /// so there are no "gaps" in the range of community numbers
+        /// </summary>        
+        /// <param name="partition">The partition of a graph into communities</param>
+        /// <returns></returns>
+        private static Dictionary<int, int> Renumber(IReadOnlyDictionary<int, int> partition)
         {
-            var ret = new Dictionary<A, int>();
-            var new_values = new Dictionary<int, int>();
+            var renumberedPartition = new Dictionary<int, int>();
+            var newCommunityIds = new Dictionary<int, int>();
+            int nextNewCommunityId = 0;
 
-            foreach (A key in dict.Keys.OrderBy(a => a))
+            foreach (var nodeId in partition.Keys.OrderBy(a => a))
             {
-                int value = dict[key];
-                int new_value;
-                if (!new_values.TryGetValue(value, out new_value))
+                var oldCommunityId = partition[nodeId];
+                
+                if (!newCommunityIds.ContainsKey(oldCommunityId))
                 {
-                    new_value = new_values[value] = new_values.Count;
+                    newCommunityIds.Add(oldCommunityId, nextNewCommunityId);
+                    nextNewCommunityId += 1;
                 }
-                ret[key] = new_value;
+                renumberedPartition[nodeId] = newCommunityIds[oldCommunityId];
             }
-            return ret;
+            return renumberedPartition;
         }
 
 
@@ -121,7 +128,7 @@ namespace LouvainCommunityPL
 
                 foreach (int node in graph.Nodes)
                 {
-                    int com_node = status.Node2Com[node];
+                    int com_node = status.CurrentPartition[node];
                     double degc_totw = status.GDegrees.GetValueOrDefault(node) / (status.TotalWeight * 2);
                     Dictionary<int, double> neigh_communities = status.NeighCom(node, graph);
                     status.Remove(node, com_node, neigh_communities.GetValueOrDefault(com_node));
@@ -139,7 +146,7 @@ namespace LouvainCommunityPL
                     }
                 }
                 new_mod = status.Modularity;
-                if (new_mod - cur_mod < Community.MIN)
+                if (new_mod - cur_mod < MIN)
                 {
                     break;
                 }

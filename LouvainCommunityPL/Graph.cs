@@ -134,7 +134,7 @@ namespace LouvainCommunityPL
         /// Computes the size of the graph, as the sum of edge weights in the graph.
         /// </summary>
         /// <returns>The sum of edge weights.</returns>
-        public double Size
+        public double TotalWeight
         {
             get { return CurrSize; }
         }
@@ -235,7 +235,7 @@ namespace LouvainCommunityPL
         /// </summary>
         /// <param name="partition">A dictionary where keys are graph nodes and values are the community to which the node belongs.</param>
         /// <returns>The quotient graph.</returns>
-        public Graph Quotient(Dictionary<int, int> partition)
+        public Graph Quotient(IDictionary<int, int> partition)
         {
             Graph ret = new Graph();
             foreach (int com in partition.Values)

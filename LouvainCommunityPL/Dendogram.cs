@@ -9,15 +9,15 @@ namespace LouvainCommunityPL
     /// </summary>
     public class Dendrogram
     {
-        private List<Dictionary<int, int>> Partitions;
+        private List<IDictionary<int, int>> Partitions;
 
         /// <summary>
         /// Creates a dendrogram with one level.
         /// </summary>
         /// <param name="part">The partition for the one level.</param>
-        public Dendrogram(Dictionary<int, int> part)
+        public Dendrogram(IDictionary<int, int> part)
         {
-            Partitions = new List<Dictionary<int, int>>();
+            Partitions = new List<IDictionary<int, int>>();
             Partitions.Add(part);
         }
 
@@ -25,9 +25,9 @@ namespace LouvainCommunityPL
         /// Creates a dendrogram with multiple levels.
         /// </summary>
         /// <param name="parts"></param>
-        public Dendrogram(IEnumerable<Dictionary<int, int>> parts)
+        public Dendrogram(IEnumerable<IDictionary<int, int>> parts)
         {
-            Partitions = new List<Dictionary<int, int>>(parts);
+            Partitions = new List<IDictionary<int, int>>(parts);
         }
 
         public int Length

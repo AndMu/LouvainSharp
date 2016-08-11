@@ -9,13 +9,13 @@ namespace LouvainCommunityPL
     /// </summary>
     class Status
     {
-        public Dictionary<int, int> Node2Com;
-        public Double TotalWeight;
+        private readonly Dictionary<int, int> m_NodeToCommunities = new Dictionary<int, int>();
         public Dictionary<int, double> Degrees;
         public Dictionary<int, double> GDegrees;
         public Dictionary<int, double> Loops;
         public Dictionary<int, double> Internals;
 
+        public Double TotalWeight { get; }
 
         /// <summary>
         /// Get the modularity of the partition of the graph fast using precomputed status.
@@ -27,7 +27,7 @@ namespace LouvainCommunityPL
             {
                 double links = TotalWeight;
                 double result = 0;
-                foreach (int community in Node2Com.Values.Distinct())
+                foreach (int community in m_NodeToCommunities.Values.Distinct())
                 {
                     double in_degree = Internals.GetValueOrDefault(community);
                     double degree = Degrees.GetValueOrDefault(community);
@@ -41,10 +41,11 @@ namespace LouvainCommunityPL
             }
         }
 
+        public IReadOnlyDictionary<int, int> CurrentPartition => m_NodeToCommunities; 
+
 
         public Status()
-        {
-            Node2Com = new Dictionary<int, int>();
+        {            
             TotalWeight = 0;
             Degrees = new Dictionary<int, double>();
             GDegrees = new Dictionary<int, double>();
@@ -55,10 +56,10 @@ namespace LouvainCommunityPL
         public Status(Graph graph) : this()
         {            
             int count = 0;
-            this.TotalWeight = graph.Size;
+            this.TotalWeight = graph.TotalWeight;
             foreach (int node in graph.Nodes)
             {
-                Node2Com[node] = count;
+                m_NodeToCommunities[node] = count;
                 double deg = graph.Degree(node);
                 if (deg < 0)
                 {
@@ -72,7 +73,7 @@ namespace LouvainCommunityPL
 
        
         /// <summary>
-        /// Compute the communities in th eneighborhood of the node in the given graph.
+        /// Compute the communities in the neighborhood of the node in the given graph.
         /// </summary>
         /// <param name="node"></param>
         /// <param name="graph"></param>
@@ -84,7 +85,7 @@ namespace LouvainCommunityPL
             {
                 if (!edge.SelfLoop)
                 {
-                    int neighborcom = Node2Com[edge.ToNode];
+                    int neighborcom = m_NodeToCommunities[edge.ToNode];
                     weights[neighborcom] = weights.GetValueOrDefault(neighborcom) + edge.Weight;
                 }
             }
@@ -101,7 +102,7 @@ namespace LouvainCommunityPL
         {
             Degrees[com] = Degrees.GetValueOrDefault(com) - GDegrees.GetValueOrDefault(node);
             Internals[com] = Internals.GetValueOrDefault(com) - weight - Loops.GetValueOrDefault(node);
-            Node2Com[node] = -1;
+            m_NodeToCommunities[node] = -1;
         }
 
         /// <summary>
@@ -112,9 +113,9 @@ namespace LouvainCommunityPL
         /// <param name="weight"></param>
         public void Insert(int node, int com, double weight)
         {
-            Node2Com[node] = com;
+            m_NodeToCommunities[node] = com;
             Degrees[com] = Degrees.GetValueOrDefault(com) + GDegrees.GetValueOrDefault(node);
             Internals[com] = Internals.GetValueOrDefault(com) + weight + Loops.GetValueOrDefault(node);
-        }       
+        }
     }
 }

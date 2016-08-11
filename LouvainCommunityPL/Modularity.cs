@@ -26,7 +26,7 @@ namespace LouvainCommunityPL
             Dictionary<int, double> inc = new Dictionary<int, double>();
             Dictionary<int, double> deg = new Dictionary<int, double>();
 
-            double links = graph.Size;
+            double links = graph.TotalWeight;
             if (links == 0)
             {
                 throw new InvalidOperationException("A graph without links has undefined modularity.");
