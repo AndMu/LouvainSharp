@@ -9,10 +9,10 @@ namespace LouvainCommunityPL
     /// </summary>
     class Status
     {
-        private readonly Dictionary<int, int> m_NodeToCommunities = new Dictionary<int, int>();
-        private readonly Dictionary<int, double> m_CommunityDegrees;
-        private Dictionary<int, double> m_NodeDegrees;
-        public Dictionary<int, double> Loops;
+        readonly Dictionary<int, int> m_NodeToCommunities = new Dictionary<int, int>();
+        readonly Dictionary<int, double> m_CommunityDegrees;
+        Dictionary<int, double> m_NodeDegrees;
+        Dictionary<int, double> m_SelfLoopWeights;
         public Dictionary<int, double> Internals;
 
         public Double TotalWeight { get; }
@@ -49,7 +49,7 @@ namespace LouvainCommunityPL
             TotalWeight = 0;
             m_CommunityDegrees = new Dictionary<int, double>();
             m_NodeDegrees = new Dictionary<int, double>();
-            Loops = new Dictionary<int, double>();
+            m_SelfLoopWeights = new Dictionary<int, double>();
             Internals = new Dictionary<int, double>();
         }
 
@@ -66,7 +66,7 @@ namespace LouvainCommunityPL
                     throw new ArgumentException("Graph has negative weights.");
                 }
                 m_CommunityDegrees[count] = m_NodeDegrees[node] = deg;
-                Internals[count] = Loops[node] = graph.GetEdgeWeight(node, node);
+                Internals[count] = m_SelfLoopWeights[node] = graph.GetEdgeWeight(node, node);
                 count += 1;
             }
         }
@@ -101,7 +101,7 @@ namespace LouvainCommunityPL
         public void Remove(int node, int com, double weight)
         {
             m_CommunityDegrees[com] = m_CommunityDegrees.GetValueOrDefault(com) - m_NodeDegrees.GetValueOrDefault(node);
-            Internals[com] = Internals.GetValueOrDefault(com) - weight - Loops.GetValueOrDefault(node);
+            Internals[com] = Internals.GetValueOrDefault(com) - weight - m_SelfLoopWeights.GetValueOrDefault(node);
             m_NodeToCommunities[node] = -1;
         }
 
@@ -115,7 +115,7 @@ namespace LouvainCommunityPL
         {
             m_NodeToCommunities[node] = com;
             m_CommunityDegrees[com] = m_CommunityDegrees.GetValueOrDefault(com) + m_NodeDegrees.GetValueOrDefault(node);
-            Internals[com] = Internals.GetValueOrDefault(com) + weight + Loops.GetValueOrDefault(node);
+            Internals[com] = Internals.GetValueOrDefault(com) + weight + m_SelfLoopWeights.GetValueOrDefault(node);
         }
 
 
