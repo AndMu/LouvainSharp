@@ -30,15 +30,11 @@ namespace LouvainCommunityPL
         /// 1. Blondel, V.D. et al. Fast unfolding of communities in large networks. J. Stat. Mech 10008, 1-12(2008).
         /// </summary>
         /// <param name="graph">The graph which is decomposed.</param>
-        /// <param name="partition">
-        /// The algorithm will start using this partition of nodes. It is a dictionary where keys are nodes
-        /// and values are communities.
-        /// </param>
         /// <returns>The partition, with communities number from 0 onward, sequentially</returns>
-        public static Dictionary<int, int> BestPartition(IGraph graph)
+        public static IDictionary<int, int> BestPartition(IGraph graph)
         {
             Dendrogram dendro = GenerateDendrogram(graph);
-            return dendro.PartitionAtLevel(dendro.Length - 1);
+            return dendro.GetPartitionAtLevel(dendro.Length - 1);
         }
 
         static Dendrogram GenerateDendrogram(IGraph graph)

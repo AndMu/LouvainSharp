@@ -9,7 +9,7 @@ namespace LouvainCommunityPL
     /// </summary>
     public class Dendrogram
     {
-        private List<IDictionary<int, int>> Partitions;
+        readonly List<IDictionary<int, int>> m_Partitions;
 
         /// <summary>
         /// Creates a dendrogram with one level.
@@ -17,8 +17,7 @@ namespace LouvainCommunityPL
         /// <param name="part">The partition for the one level.</param>
         public Dendrogram(IDictionary<int, int> part)
         {
-            Partitions = new List<IDictionary<int, int>>();
-            Partitions.Add(part);
+            m_Partitions = new List<IDictionary<int, int>>() { part };
         }
 
         /// <summary>
@@ -27,30 +26,29 @@ namespace LouvainCommunityPL
         /// <param name="parts"></param>
         public Dendrogram(IEnumerable<IDictionary<int, int>> parts)
         {
-            Partitions = new List<IDictionary<int, int>>(parts);
+            m_Partitions = new List<IDictionary<int, int>>(parts);
         }
 
-        public int Length
-        {
-            get { return Partitions.Count; }
-        }
+        public int Length => m_Partitions.Count;
 
         /// <summary>
         /// Return the partition of the nodes at the given level.
         /// </summary>
         /// <param name="level">The level to retrieve, [0..dendrogram.Length-1].</param>
         /// <returns>A dictionary where keys are nodes and values the set to which it belongs.</returns>
-        public Dictionary<int, int> PartitionAtLevel(int level)
+        public Dictionary<int, int> GetPartitionAtLevel(int level)
         {
-            Dictionary<int, int> partition = new Dictionary<int, int>(Partitions[0]);
+            Dictionary<int, int> partition = new Dictionary<int, int>(m_Partitions[0]);
+
             for (int index = 1; index <= level; index++)
             {
                 foreach (int node in partition.Keys.ToArray())
                 {
-                    int com = partition[node];
-                    partition[node] = Partitions[index][com];
+                    int community = partition[node];
+                    partition[node] = m_Partitions[index][community];
                 }
             }
+
             return partition;
         }
     }
