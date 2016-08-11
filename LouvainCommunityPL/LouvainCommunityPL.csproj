@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Community.cs" />
+    <Compile Include="Dendogram.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
