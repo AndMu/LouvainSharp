@@ -68,6 +68,7 @@
     <Compile Include="Edge.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="IGraph.cs" />
+    <Compile Include="IStatus.cs" />
     <Compile Include="Modularity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Status.cs" />

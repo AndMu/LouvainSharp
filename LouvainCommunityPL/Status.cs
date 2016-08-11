@@ -10,12 +10,12 @@ namespace LouvainCommunityPL
     class Status
     {
         readonly Dictionary<int, int> m_NodeToCommunities = new Dictionary<int, int>();
-        readonly Dictionary<int, double> m_CommunityDegrees;
-        readonly Dictionary<int, double> m_NodeDegrees;
-        readonly Dictionary<int, double> m_SelfLoopWeights;
-        readonly Dictionary<int, double> m_CommunityInternalWeights;
+        readonly Dictionary<int, double> m_CommunityDegrees = new Dictionary<int, double>();
+        readonly Dictionary<int, double> m_NodeDegrees = new Dictionary<int, double>();
+        readonly Dictionary<int, double> m_SelfLoopWeights = new Dictionary<int, double>();
+        readonly Dictionary<int, double> m_CommunityInternalWeights = new Dictionary<int, double>();
 
-        public Double TotalWeight { get; }
+        public double TotalWeight { get; } = 0.0;
 
         /// <summary>
         /// Get the modularity of the partition of the graph fast using precomputed status.
@@ -43,17 +43,9 @@ namespace LouvainCommunityPL
 
         public IReadOnlyDictionary<int, int> CurrentPartition => m_NodeToCommunities; 
 
+        
 
-        public Status()
-        {            
-            TotalWeight = 0;
-            m_CommunityDegrees = new Dictionary<int, double>();
-            m_NodeDegrees = new Dictionary<int, double>();
-            m_SelfLoopWeights = new Dictionary<int, double>();
-            m_CommunityInternalWeights = new Dictionary<int, double>();
-        }
-
-        public Status(IGraph graph) : this()
+        public Status(IGraph graph)
         {            
             int count = 0;
             this.TotalWeight = graph.TotalWeight;
