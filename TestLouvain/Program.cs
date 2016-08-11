@@ -37,7 +37,7 @@ namespace TestLouvain
 
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Restart();
-            Dictionary<int, int> partition = Community.BestPartition(g);
+            IDictionary<int, int> partition = Community.BestPartition(g);
             Console.WriteLine("BestPartition: {0}", stopwatch.Elapsed);
             var communities = new Dictionary<int, List<int>>();
             foreach (var kvp in partition)

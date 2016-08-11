@@ -17,8 +17,8 @@ namespace LouvainCommunityPL
     /// </summary>
     public static class Community
     {
-        internal static int PASS_MAX = -1;
-        internal static double MIN = 0.0000001;
+        static int PASS_MAX = -1;
+        static double MIN = 0.0000001;
 
         /// <summary>
         /// Compute the partition of the graph nodes which maximises the modularity using the Louvain heuristics (or try...)
@@ -33,11 +33,11 @@ namespace LouvainCommunityPL
         /// <returns>The partition, with communities number from 0 onward, sequentially</returns>
         public static IDictionary<int, int> BestPartition(IGraph graph)
         {
-            Dendrogram dendro = GenerateDendrogram(graph);
-            return dendro.GetPartitionAtLevel(dendro.Length - 1);
+            var dendrogram = GenerateDendrogram(graph);
+            return dendrogram.GetPartitionAtLevel(dendrogram.Length - 1);
         }
 
-        static Dendrogram GenerateDendrogram(IGraph graph)
+        public static Dendrogram GenerateDendrogram(IGraph graph)
         {
             IDictionary<int, int> partition;
 
@@ -54,26 +54,29 @@ namespace LouvainCommunityPL
                 return new Dendrogram(partition);
             }
 
-            var current_graph = graph;
-
-            IStatus status = new Status(current_graph);
-            double mod = status.CurrentModularity;
+            IGraph currentGraph = graph;
+            IStatus currentStatus = new Status(currentGraph);
             var status_list = new List<IDictionary<int, int>>();
-            OneLevel(current_graph, status);
-            double new_mod;
-            new_mod = status.CurrentModularity;
+
+            double previousModularity = currentStatus.CurrentModularity;
+            OneLevel(currentGraph, currentStatus);
+            double newModularity = currentStatus.CurrentModularity;
             
             do
             {
-                partition = Renumber(status.CurrentPartition);
+                partition = Renumber(currentStatus.CurrentPartition);
                 status_list.Add(partition);
-                mod = new_mod;
-                current_graph = current_graph.GetQuotient(partition);
-                status = new Status(current_graph);
-                OneLevel(current_graph, status);
-                new_mod = status.CurrentModularity;
+
+                previousModularity = newModularity;
+
+                currentGraph = currentGraph.GetQuotient(partition);
+                currentStatus = new Status(currentGraph);
+
+                OneLevel(currentGraph, currentStatus);
+
+                newModularity = currentStatus.CurrentModularity;
             }
-            while (new_mod - mod >= MIN);
+            while (newModularity - previousModularity >= MIN);
 
             return new Dendrogram(status_list);
         }
@@ -84,7 +87,7 @@ namespace LouvainCommunityPL
         /// </summary>        
         /// <param name="partition">The partition of a graph into communities</param>
         /// <returns></returns>
-        private static Dictionary<int, int> Renumber(IReadOnlyDictionary<int, int> partition)
+        static Dictionary<int, int> Renumber(IReadOnlyDictionary<int, int> partition)
         {
             var renumberedPartition = new Dictionary<int, int>();
             var newCommunityIds = new Dictionary<int, int>();
@@ -110,38 +113,47 @@ namespace LouvainCommunityPL
         /// </summary>        
         static void OneLevel(IGraph graph, IStatus status)
         {
-            bool modif = true;
-            int nb_pass_done = 0;
-            double cur_mod = status.CurrentModularity;
-            double new_mod = cur_mod;
+            bool modified = true;
+            int currentPass = 0;
+            double currentModularity = status.CurrentModularity;
+            double newModularity = currentModularity;
 
-            while (modif && nb_pass_done != Community.PASS_MAX)
+            while (modified && currentPass != PASS_MAX)
             {
-                cur_mod = new_mod;
-                modif = false;
-                nb_pass_done += 1;
+                currentModularity = newModularity;
+                modified = false;
+                currentPass += 1;
 
-                foreach (int node in graph.Nodes)
+                foreach (var node in graph.Nodes)
                 {
-                    int com_node = status.CurrentPartition[node];
-                    double degc_totw = status.GetNodeDegree(node) / (status.TotalWeight * 2);
-                    Dictionary<int, double> neigh_communities = status.GetNeighbourCommunities(node, graph);
-                    status.RemoveNodeFromCommunity(node, com_node, neigh_communities.GetValueOrDefault(com_node));
+                    // get the node's current and neighbouring communities
+                    int community = status.CurrentPartition[node];
+                    Dictionary<int, double> neighbourCommunities = status.GetNeighbourCommunities(node, graph);
 
-                    Tuple<double, int> best;
-                    best = (from entry in neigh_communities.AsParallel()
-                            select EvaluateIncrease(status, entry.Key, entry.Value, degc_totw))
-                        .Concat(new[] { Tuple.Create(0.0, com_node) }.AsParallel())
-                        .Max();
-                    int best_com = best.Item2;
-                    status.AddNodeToCommunity(node, best_com, neigh_communities.GetValueOrDefault(best_com));
-                    if (best_com != com_node)
+                    double degc_totw = status.GetNodeDegree(node) / (status.TotalWeight * 2);
+
+                    // remove node from it's current community
+                    status.RemoveNodeFromCommunity(node, community, neighbourCommunities.GetValueOrDefault(community));
+
+                    // determine the community to move the node into which yield the best increase in modularity
+                    int bestCommunity = neighbourCommunities
+                        .AsParallel()
+                        .Select(entry => EvaluateIncrease(status, entry.Key, entry.Value, degc_totw))                       
+                        .Concat(new[] { Tuple.Create(0.0, community) }
+                        .AsParallel())
+                        .Max()
+                        .Item2;
+                    
+                    // add node to the determined community
+                    status.AddNodeToCommunity(node, bestCommunity, neighbourCommunities.GetValueOrDefault(bestCommunity));
+                    if (bestCommunity != community)
                     {
-                        modif = true;
+                        modified = true;
                     }
                 }
-                new_mod = status.CurrentModularity;
-                if (new_mod - cur_mod < MIN)
+                newModularity = status.CurrentModularity;
+
+                if (newModularity - currentModularity < MIN)
                 {
                     break;
                 }
@@ -152,7 +164,7 @@ namespace LouvainCommunityPL
         /// Used in parallelized OneLevel
         /// </summary>
         static Tuple<double, int> EvaluateIncrease(IStatus status, int com, double dnc, double degc_totw)
-        {
+        {            
             double incr = dnc - status.GetCommunityDegree(com) * degc_totw;
             return Tuple.Create(incr, com);
         }
