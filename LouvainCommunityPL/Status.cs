@@ -16,6 +16,32 @@ namespace LouvainCommunityPL
         public Dictionary<int, double> Loops;
         public Dictionary<int, double> Internals;
 
+
+        /// <summary>
+        /// Get the modularity of the partition of the graph fast using precomputed status.
+        /// </summary>
+        /// <returns></returns>
+        public double Modularity
+        {
+            get
+            {
+                double links = TotalWeight;
+                double result = 0;
+                foreach (int community in Node2Com.Values.Distinct())
+                {
+                    double in_degree = Internals.GetValueOrDefault(community);
+                    double degree = Degrees.GetValueOrDefault(community);
+                    if (links > 0)
+                    {
+                        result += in_degree / links - Math.Pow(degree / (2 * links), 2);
+                    }
+                }
+                return result;
+
+            }
+        }
+
+
         public Status()
         {
             Node2Com = new Dictionary<int, int>();
@@ -44,25 +70,7 @@ namespace LouvainCommunityPL
             }
         }
 
-        /// <summary>
-        /// Compute the modularity of the partition of the graph fast using precomputed status.
-        /// </summary>
-        /// <returns></returns>
-        public double Modularity()
-        {
-            double links = TotalWeight;
-            double result = 0;
-            foreach (int community in Node2Com.Values.Distinct())
-            {
-                double in_degree = Internals.GetValueOrDefault(community);
-                double degree = Degrees.GetValueOrDefault(community);
-                if (links > 0)
-                {
-                    result += in_degree/links - Math.Pow(degree/(2*links), 2);
-                }
-            }
-            return result;
-        }
+
 
         /// <summary>
         /// Used in parallelized OneLevel
@@ -81,7 +89,7 @@ namespace LouvainCommunityPL
         {
             bool modif = true;
             int nb_pass_done = 0;
-            double cur_mod = this.Modularity();
+            double cur_mod = this.Modularity;
             double new_mod = cur_mod;
 
             while (modif && nb_pass_done != Community.PASS_MAX)
@@ -109,7 +117,7 @@ namespace LouvainCommunityPL
                         modif = true;
                     }
                 }
-                new_mod = this.Modularity();
+                new_mod = this.Modularity;
                 if (new_mod - cur_mod < Community.MIN)
                 {
                     break;

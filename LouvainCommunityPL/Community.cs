@@ -58,11 +58,11 @@ namespace LouvainCommunityPL
 
             Graph current_graph = new Graph(graph);
             Status status = new Status(current_graph);
-            double mod = status.Modularity();
+            double mod = status.Modularity;
             List<Dictionary<int, int>> status_list = new List<Dictionary<int, int>>();
             status.OneLevel(current_graph);
             double new_mod;
-            new_mod = status.Modularity();
+            new_mod = status.Modularity;
 
             int iterations = 1;
             do
@@ -74,7 +74,7 @@ namespace LouvainCommunityPL
                 current_graph = current_graph.Quotient(partition);
                 status = new Status(current_graph);
                 status.OneLevel(current_graph);
-                new_mod = status.Modularity();
+                new_mod = status.Modularity;
             }
             while (new_mod - mod >= MIN);
             //Console.Out.WriteLine("(GenerateDendrogram: {0} iterations in {1})", iterations, stopwatch.Elapsed);
