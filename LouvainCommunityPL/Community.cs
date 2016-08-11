@@ -72,7 +72,7 @@ namespace LouvainCommunityPL
                 partition = Renumber(status.CurrentPartition);
                 status_list.Add(partition);
                 mod = new_mod;
-                current_graph = current_graph.Quotient(partition);
+                current_graph = current_graph.GetQuotient(partition);
                 status = new Status(current_graph);
                 OneLevel(current_graph, status);
                 new_mod = status.Modularity;

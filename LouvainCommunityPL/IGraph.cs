@@ -8,16 +8,15 @@ namespace LouvainCommunityPL
 
         double TotalWeight { get; }
 
-
         IEnumerable<int> Nodes { get; }
         
         
-        IEnumerable<Edge> IncidentEdges(int node);
+        IEnumerable<Edge> GetIncidentEdges(int node);
 
-        IGraph Quotient(IDictionary<int, int> partition);
+        IGraph GetQuotient(IDictionary<int, int> partition);
 
-        double Degree(int node);
+        double GetDegree(int node);
 
-        double EdgeWeight(int node1, int node2);
+        double GetEdgeWeight(int node1, int node2);
     }
 }

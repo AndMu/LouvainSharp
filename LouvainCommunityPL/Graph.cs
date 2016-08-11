@@ -114,7 +114,7 @@ namespace LouvainCommunityPL
         /// </summary>
         /// <param name="node">The node whose edges' weights should be summed.</param>
         /// <returns>The weighted degree of the node.</returns>
-        public double Degree(int node)
+        public double GetDegree(int node)
         {
             double loop;
             m_AdjacencyMatrix[node].TryGetValue(node, out loop); // since self loop has two ends
@@ -155,7 +155,7 @@ namespace LouvainCommunityPL
         /// </summary>
         /// <param name="node">The node from which the returned edges will be incident.</param>
         /// <returns>An enumeration of incident edges.</returns>
-        public IEnumerable<Edge> IncidentEdges(int node)
+        public IEnumerable<Edge> GetIncidentEdges(int node)
         {
             Dictionary<int, double> incidence;
             if (m_AdjacencyMatrix.TryGetValue(node, out incidence))
@@ -178,7 +178,7 @@ namespace LouvainCommunityPL
         /// <param name="node2">The second node.</param>
         /// <param name="defaultValue">The default value to return if there is no such edge.</param>
         /// <returns>The weight of the edge (or the default value).</returns>
-        public double EdgeWeight(int node1, int node2)
+        public double GetEdgeWeight(int node1, int node2)
         {
             Dictionary<int, double> ilist;
             if (!m_AdjacencyMatrix.TryGetValue(node1, out ilist))
@@ -205,7 +205,7 @@ namespace LouvainCommunityPL
         /// </summary>
         /// <param name="partition">A dictionary where keys are graph nodes and values are the community to which the node belongs.</param>
         /// <returns>The quotient graph.</returns>
-        public IGraph Quotient(IDictionary<int, int> partition)
+        public IGraph GetQuotient(IDictionary<int, int> partition)
         {
             Graph ret = new Graph();
             foreach (int com in partition.Values)

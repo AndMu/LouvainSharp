@@ -35,8 +35,8 @@ namespace LouvainCommunityPL
             foreach (int node in graph.Nodes)
             {
                 int com = partition[node];
-                deg[com] = deg.GetValueOrDefault(com) + graph.Degree(node);
-                foreach (var edge in graph.IncidentEdges(node))
+                deg[com] = deg.GetValueOrDefault(com) + graph.GetDegree(node);
+                foreach (var edge in graph.GetIncidentEdges(node))
                 {
                     int neighbor = edge.ToNode;
                     if (partition[neighbor] == com)
