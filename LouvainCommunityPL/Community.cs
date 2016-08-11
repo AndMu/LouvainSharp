@@ -158,7 +158,7 @@ namespace LouvainCommunityPL
         /// </summary>
         static Tuple<double, int> EvaluateIncrease(Status status, int com, double dnc, double degc_totw)
         {
-            double incr = dnc - status.Degrees.GetValueOrDefault(com) * degc_totw;
+            double incr = dnc - status.GetCommunityDegree(com) * degc_totw;
             return Tuple.Create(incr, com);
         }
     }

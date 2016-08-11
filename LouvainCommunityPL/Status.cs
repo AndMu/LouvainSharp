@@ -10,7 +10,7 @@ namespace LouvainCommunityPL
     class Status
     {
         private readonly Dictionary<int, int> m_NodeToCommunities = new Dictionary<int, int>();
-        public Dictionary<int, double> Degrees;
+        private readonly Dictionary<int, double> m_CommunityDegrees;
         public Dictionary<int, double> GDegrees;
         public Dictionary<int, double> Loops;
         public Dictionary<int, double> Internals;
@@ -30,7 +30,7 @@ namespace LouvainCommunityPL
                 foreach (int community in m_NodeToCommunities.Values.Distinct())
                 {
                     double in_degree = Internals.GetValueOrDefault(community);
-                    double degree = Degrees.GetValueOrDefault(community);
+                    double degree = m_CommunityDegrees.GetValueOrDefault(community);
                     if (links > 0)
                     {
                         result += in_degree / links - Math.Pow(degree / (2 * links), 2);
@@ -47,7 +47,7 @@ namespace LouvainCommunityPL
         public Status()
         {            
             TotalWeight = 0;
-            Degrees = new Dictionary<int, double>();
+            m_CommunityDegrees = new Dictionary<int, double>();
             GDegrees = new Dictionary<int, double>();
             Loops = new Dictionary<int, double>();
             Internals = new Dictionary<int, double>();
@@ -65,7 +65,7 @@ namespace LouvainCommunityPL
                 {
                     throw new ArgumentException("Graph has negative weights.");
                 }
-                Degrees[count] = GDegrees[node] = deg;
+                m_CommunityDegrees[count] = GDegrees[node] = deg;
                 Internals[count] = Loops[node] = graph.GetEdgeWeight(node, node);
                 count += 1;
             }
@@ -100,7 +100,7 @@ namespace LouvainCommunityPL
         /// <param name="weight"></param>
         public void Remove(int node, int com, double weight)
         {
-            Degrees[com] = Degrees.GetValueOrDefault(com) - GDegrees.GetValueOrDefault(node);
+            m_CommunityDegrees[com] = m_CommunityDegrees.GetValueOrDefault(com) - GDegrees.GetValueOrDefault(node);
             Internals[com] = Internals.GetValueOrDefault(com) - weight - Loops.GetValueOrDefault(node);
             m_NodeToCommunities[node] = -1;
         }
@@ -114,8 +114,14 @@ namespace LouvainCommunityPL
         public void Insert(int node, int com, double weight)
         {
             m_NodeToCommunities[node] = com;
-            Degrees[com] = Degrees.GetValueOrDefault(com) + GDegrees.GetValueOrDefault(node);
+            m_CommunityDegrees[com] = m_CommunityDegrees.GetValueOrDefault(com) + GDegrees.GetValueOrDefault(node);
             Internals[com] = Internals.GetValueOrDefault(com) + weight + Loops.GetValueOrDefault(node);
+        }
+
+
+        public double GetCommunityDegree(int community)
+        {
+            return m_CommunityDegrees.GetValueOrDefault(community);
         }
     }
 }
