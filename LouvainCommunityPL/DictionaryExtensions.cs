@@ -5,7 +5,7 @@ namespace LouvainCommunityPL
 {
     public static class DictionaryExtensions
     {
-        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dicitionary, TKey key, TValue defaultValue)
+        public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dicitionary, TKey key, TValue defaultValue = default(TValue))
         {
             return dicitionary.ContainsKey(key) ? dicitionary[key] : defaultValue;
         }

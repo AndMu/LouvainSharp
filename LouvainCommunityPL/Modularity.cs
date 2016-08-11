@@ -35,7 +35,7 @@ namespace LouvainCommunityPL
             foreach (int node in graph.Nodes)
             {
                 int com = partition[node];
-                deg[com] = DictGet(deg, com, 0) + graph.Degree(node);
+                deg[com] = deg.GetValueOrDefault(com) + graph.Degree(node);
                 foreach (var edge in graph.IncidentEdges(node))
                 {
                     int neighbor = edge.ToNode;
@@ -50,7 +50,7 @@ namespace LouvainCommunityPL
                         {
                             weight = edge.Weight/2;
                         }
-                        inc[com] = DictGet(inc, com, 0) + weight;
+                        inc[com] = inc.GetValueOrDefault(com) + weight;
                     }
                 }
             }
@@ -58,22 +58,10 @@ namespace LouvainCommunityPL
             double res = 0;
             foreach (int component in partition.Values.Distinct())
             {
-                res += DictGet(inc, component, 0)/links - Math.Pow(DictGet(deg, component, 0)/(2*links), 2);
+                res += inc.GetValueOrDefault(component)/links - Math.Pow(deg.GetValueOrDefault(component)/(2*links), 2);
             }
             return res;
         }
-
-        private static B DictGet<A, B>(Dictionary<A, B> dict, A key, B defaultValue)
-        {
-            B result;
-            if (dict.TryGetValue(key, out result))
-            {
-                return result;
-            }
-            else
-            {
-                return defaultValue;
-            }
-        }
+        
     }
 }

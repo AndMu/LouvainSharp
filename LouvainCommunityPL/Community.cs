@@ -105,15 +105,6 @@ namespace LouvainCommunityPL {
             return ret;
         }
 
-        private static B DictGet<A, B>(Dictionary<A, B> dict, A key, B defaultValue) {
-            B result;
-            if (dict.TryGetValue(key, out result)) {
-                return result;
-            } else {
-                return defaultValue;
-            }
-        }
-
        
     }
 

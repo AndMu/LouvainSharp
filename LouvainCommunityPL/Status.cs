@@ -53,7 +53,7 @@ namespace LouvainCommunityPL
                     int com = part[node];
                     Node2Com[node] = com;
                     double deg = graph.Degree(node);
-                    Degrees[com] = DictGet(Degrees, com, 0) + deg;
+                    Degrees[com] = Degrees.GetValueOrDefault(com) + deg;
                     GDegrees[node] = deg;
                     double inc = 0;
                     foreach (Graph.Edge edge in graph.IncidentEdges(node))
@@ -75,7 +75,7 @@ namespace LouvainCommunityPL
                             }
                         }
                     }
-                    Internals[com] = DictGet(Internals, com, 0) + inc;
+                    Internals[com] = Internals.GetValueOrDefault(com) + inc;
                 }
             }
         }
@@ -90,8 +90,8 @@ namespace LouvainCommunityPL
             double result = 0;
             foreach (int community in Node2Com.Values.Distinct())
             {
-                double in_degree = DictGet(Internals, community, 0);
-                double degree = DictGet(Degrees, community, 0);
+                double in_degree = Internals.GetValueOrDefault(community);
+                double degree = Degrees.GetValueOrDefault(community);
                 if (links > 0)
                 {
                     result += in_degree/links - Math.Pow(degree/(2*links), 2);
@@ -105,7 +105,7 @@ namespace LouvainCommunityPL
         /// </summary>
         private Tuple<double, int> EvaluateIncrease(int com, double dnc, double degc_totw)
         {
-            double incr = dnc - DictGet(Degrees, com, 0)*degc_totw;
+            double incr = dnc - Degrees.GetValueOrDefault(com) * degc_totw;
             return Tuple.Create(incr, com);
         }
 
@@ -129,9 +129,9 @@ namespace LouvainCommunityPL
                 foreach (int node in graph.Nodes)
                 {
                     int com_node = Node2Com[node];
-                    double degc_totw = DictGet(GDegrees, node, 0)/(TotalWeight*2);
+                    double degc_totw = GDegrees.GetValueOrDefault(node) / (TotalWeight*2);
                     Dictionary<int, double> neigh_communities = NeighCom(node, graph);
-                    Remove(node, com_node, DictGet(neigh_communities, com_node, 0));
+                    Remove(node, com_node, neigh_communities.GetValueOrDefault(com_node));
 
                     Tuple<double, int> best;
                     best = (from entry in neigh_communities.AsParallel()
@@ -139,7 +139,7 @@ namespace LouvainCommunityPL
                         .Concat(new[] {Tuple.Create(0.0, com_node)}.AsParallel())
                         .Max();
                     int best_com = best.Item2;
-                    Insert(node, best_com, DictGet(neigh_communities, best_com, 0));
+                    Insert(node, best_com, neigh_communities.GetValueOrDefault(best_com));
                     if (best_com != com_node)
                     {
                         modif = true;
@@ -167,7 +167,7 @@ namespace LouvainCommunityPL
                 if (!edge.SelfLoop)
                 {
                     int neighborcom = Node2Com[edge.ToNode];
-                    weights[neighborcom] = DictGet(weights, neighborcom, 0) + edge.Weight;
+                    weights[neighborcom] = weights.GetValueOrDefault(neighborcom) + edge.Weight;
                 }
             }
             return weights;
@@ -181,8 +181,8 @@ namespace LouvainCommunityPL
         /// <param name="weight"></param>
         private void Remove(int node, int com, double weight)
         {
-            Degrees[com] = DictGet(Degrees, com, 0) - DictGet(GDegrees, node, 0);
-            Internals[com] = DictGet(Internals, com, 0) - weight - DictGet(Loops, node, 0);
+            Degrees[com] = Degrees.GetValueOrDefault(com) - GDegrees.GetValueOrDefault(node);
+            Internals[com] = Internals.GetValueOrDefault(com) - weight - Loops.GetValueOrDefault(node);
             Node2Com[node] = -1;
         }
 
@@ -195,21 +195,8 @@ namespace LouvainCommunityPL
         private void Insert(int node, int com, double weight)
         {
             Node2Com[node] = com;
-            Degrees[com] = DictGet(Degrees, com, 0) + DictGet(GDegrees, node, 0);
-            Internals[com] = DictGet(Internals, com, 0) + weight + DictGet(Loops, node, 0);
-        }
-
-        private static B DictGet<A, B>(Dictionary<A, B> dict, A key, B defaultValue)
-        {
-            B result;
-            if (dict.TryGetValue(key, out result))
-            {
-                return result;
-            }
-            else
-            {
-                return defaultValue;
-            }
-        }
+            Degrees[com] = Degrees.GetValueOrDefault(com) + GDegrees.GetValueOrDefault(node);
+            Internals[com] = Internals.GetValueOrDefault(com) + weight + Loops.GetValueOrDefault(node);
+        }       
     }
 }
