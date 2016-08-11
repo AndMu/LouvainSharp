@@ -70,68 +70,14 @@ namespace LouvainCommunityPL
             }
         }
 
-
-
-        /// <summary>
-        /// Used in parallelized OneLevel
-        /// </summary>
-        private Tuple<double, int> EvaluateIncrease(int com, double dnc, double degc_totw)
-        {
-            double incr = dnc - Degrees.GetValueOrDefault(com) * degc_totw;
-            return Tuple.Create(incr, com);
-        }
-
-        /// <summary>
-        /// Compute one level of communities.
-        /// </summary>
-        /// <param name="graph">The graph to use.</param>
-        public void OneLevel(Graph graph)
-        {
-            bool modif = true;
-            int nb_pass_done = 0;
-            double cur_mod = this.Modularity;
-            double new_mod = cur_mod;
-
-            while (modif && nb_pass_done != Community.PASS_MAX)
-            {
-                cur_mod = new_mod;
-                modif = false;
-                nb_pass_done += 1;
-
-                foreach (int node in graph.Nodes)
-                {
-                    int com_node = Node2Com[node];
-                    double degc_totw = GDegrees.GetValueOrDefault(node) / (TotalWeight*2);
-                    Dictionary<int, double> neigh_communities = NeighCom(node, graph);
-                    Remove(node, com_node, neigh_communities.GetValueOrDefault(com_node));
-
-                    Tuple<double, int> best;
-                    best = (from entry in neigh_communities.AsParallel()
-                        select EvaluateIncrease(entry.Key, entry.Value, degc_totw))
-                        .Concat(new[] {Tuple.Create(0.0, com_node)}.AsParallel())
-                        .Max();
-                    int best_com = best.Item2;
-                    Insert(node, best_com, neigh_communities.GetValueOrDefault(best_com));
-                    if (best_com != com_node)
-                    {
-                        modif = true;
-                    }
-                }
-                new_mod = this.Modularity;
-                if (new_mod - cur_mod < Community.MIN)
-                {
-                    break;
-                }
-            }
-        }
-
+       
         /// <summary>
         /// Compute the communities in th eneighborhood of the node in the given graph.
         /// </summary>
         /// <param name="node"></param>
         /// <param name="graph"></param>
         /// <returns></returns>
-        private Dictionary<int, double> NeighCom(int node, Graph graph)
+        public Dictionary<int, double> NeighCom(int node, Graph graph)
         {
             Dictionary<int, double> weights = new Dictionary<int, double>();
             foreach (Graph.Edge edge in graph.IncidentEdges(node))
@@ -151,7 +97,7 @@ namespace LouvainCommunityPL
         /// <param name="node"></param>
         /// <param name="com"></param>
         /// <param name="weight"></param>
-        private void Remove(int node, int com, double weight)
+        public void Remove(int node, int com, double weight)
         {
             Degrees[com] = Degrees.GetValueOrDefault(com) - GDegrees.GetValueOrDefault(node);
             Internals[com] = Internals.GetValueOrDefault(com) - weight - Loops.GetValueOrDefault(node);
@@ -164,7 +110,7 @@ namespace LouvainCommunityPL
         /// <param name="node"></param>
         /// <param name="com"></param>
         /// <param name="weight"></param>
-        private void Insert(int node, int com, double weight)
+        public void Insert(int node, int com, double weight)
         {
             Node2Com[node] = com;
             Degrees[com] = Degrees.GetValueOrDefault(com) + GDegrees.GetValueOrDefault(node);

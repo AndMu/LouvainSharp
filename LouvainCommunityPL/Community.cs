@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LouvainCommunityPL
@@ -60,7 +61,7 @@ namespace LouvainCommunityPL
             Status status = new Status(current_graph);
             double mod = status.Modularity;
             List<Dictionary<int, int>> status_list = new List<Dictionary<int, int>>();
-            status.OneLevel(current_graph);
+            OneLevel(current_graph, status);
             double new_mod;
             new_mod = status.Modularity;
 
@@ -73,7 +74,7 @@ namespace LouvainCommunityPL
                 mod = new_mod;
                 current_graph = current_graph.Quotient(partition);
                 status = new Status(current_graph);
-                status.OneLevel(current_graph);
+                OneLevel(current_graph, status);
                 new_mod = status.Modularity;
             }
             while (new_mod - mod >= MIN);
@@ -99,5 +100,61 @@ namespace LouvainCommunityPL
             }
             return ret;
         }
+
+
+        /// <summary>
+        /// Compute one level of communities.
+        /// </summary>
+        /// <param name="graph">The graph to use.</param>
+        static void OneLevel(Graph graph, Status status)
+        {
+            bool modif = true;
+            int nb_pass_done = 0;
+            double cur_mod = status.Modularity;
+            double new_mod = cur_mod;
+
+            while (modif && nb_pass_done != Community.PASS_MAX)
+            {
+                cur_mod = new_mod;
+                modif = false;
+                nb_pass_done += 1;
+
+                foreach (int node in graph.Nodes)
+                {
+                    int com_node = status.Node2Com[node];
+                    double degc_totw = status.GDegrees.GetValueOrDefault(node) / (status.TotalWeight * 2);
+                    Dictionary<int, double> neigh_communities = status.NeighCom(node, graph);
+                    status.Remove(node, com_node, neigh_communities.GetValueOrDefault(com_node));
+
+                    Tuple<double, int> best;
+                    best = (from entry in neigh_communities.AsParallel()
+                            select EvaluateIncrease(status, entry.Key, entry.Value, degc_totw))
+                        .Concat(new[] { Tuple.Create(0.0, com_node) }.AsParallel())
+                        .Max();
+                    int best_com = best.Item2;
+                    status.Insert(node, best_com, neigh_communities.GetValueOrDefault(best_com));
+                    if (best_com != com_node)
+                    {
+                        modif = true;
+                    }
+                }
+                new_mod = status.Modularity;
+                if (new_mod - cur_mod < Community.MIN)
+                {
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Used in parallelized OneLevel
+        /// </summary>
+        static Tuple<double, int> EvaluateIncrease(Status status, int com, double dnc, double degc_totw)
+        {
+            double incr = dnc - status.Degrees.GetValueOrDefault(com) * degc_totw;
+            return Tuple.Create(incr, com);
+        }
     }
+
+
 }
