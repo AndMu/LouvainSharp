@@ -129,7 +129,7 @@ namespace LouvainCommunityPL
                 foreach (int node in graph.Nodes)
                 {
                     int com_node = status.CurrentPartition[node];
-                    double degc_totw = status.GDegrees.GetValueOrDefault(node) / (status.TotalWeight * 2);
+                    double degc_totw = status.GetNodeDegree(node) / (status.TotalWeight * 2);
                     Dictionary<int, double> neigh_communities = status.NeighCom(node, graph);
                     status.Remove(node, com_node, neigh_communities.GetValueOrDefault(com_node));
 
