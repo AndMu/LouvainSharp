@@ -26,57 +26,21 @@ namespace LouvainCommunityPL
             Internals = new Dictionary<int, double>();
         }
 
-        public Status(Graph graph, Dictionary<int, int> part)
-            : this()
-        {
+        public Status(Graph graph) : this()
+        {            
             int count = 0;
             this.TotalWeight = graph.Size;
-            if (part == null)
+            foreach (int node in graph.Nodes)
             {
-                foreach (int node in graph.Nodes)
+                Node2Com[node] = count;
+                double deg = graph.Degree(node);
+                if (deg < 0)
                 {
-                    Node2Com[node] = count;
-                    double deg = graph.Degree(node);
-                    if (deg < 0)
-                    {
-                        throw new ArgumentException("Graph has negative weights.");
-                    }
-                    Degrees[count] = GDegrees[node] = deg;
-                    Internals[count] = Loops[node] = graph.EdgeWeight(node, node, 0);
-                    count += 1;
+                    throw new ArgumentException("Graph has negative weights.");
                 }
-            }
-            else
-            {
-                foreach (int node in graph.Nodes)
-                {
-                    int com = part[node];
-                    Node2Com[node] = com;
-                    double deg = graph.Degree(node);
-                    Degrees[com] = Degrees.GetValueOrDefault(com) + deg;
-                    GDegrees[node] = deg;
-                    double inc = 0;
-                    foreach (Graph.Edge edge in graph.IncidentEdges(node))
-                    {
-                        int neighbor = edge.ToNode;
-                        if (edge.Weight <= 0)
-                        {
-                            throw new ArgumentException("Graph must have postive weights.");
-                        }
-                        if (part[neighbor] == com)
-                        {
-                            if (neighbor == node)
-                            {
-                                inc += edge.Weight;
-                            }
-                            else
-                            {
-                                inc += edge.Weight/2;
-                            }
-                        }
-                    }
-                    Internals[com] = Internals.GetValueOrDefault(com) + inc;
-                }
+                Degrees[count] = GDegrees[node] = deg;
+                Internals[count] = Loops[node] = graph.EdgeWeight(node, node, 0);
+                count += 1;
             }
         }
 

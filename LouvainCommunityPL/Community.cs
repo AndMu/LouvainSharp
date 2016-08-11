@@ -37,24 +37,14 @@ namespace LouvainCommunityPL {
         /// <param name="graph">The graph which is decomposed.</param>
         /// <param name="partition">The algorithm will start using this partition of nodes. It is a dictionary where keys are nodes and values are communities.</param>
         /// <returns>The partition, with communities number from 0 onward, sequentially</returns>
-        public static Dictionary<int, int> BestPartition(Graph graph, Dictionary<int, int> partition) {
-            Dendrogram dendro = GenerateDendrogram(graph, partition);
+        public static Dictionary<int, int> BestPartition(Graph graph)
+        {
+            Dendrogram dendro = GenerateDendrogram(graph);
             return dendro.PartitionAtLevel(dendro.Length - 1);
         }
-
-        /// <summary>
-        /// Does BestPartition without an initial partition.
-        /// </summary>
-        /// <param name="graph">The graph for which to find the best partition.</param>
-        /// <returns>The best partition of the graph.</returns>
-        public static Dictionary<int, int> BestPartition(Graph graph) {
-            return BestPartition(graph, null);
-        }
-
-        public static Dendrogram GenerateDendrogram(Graph graph, Dictionary<int, int> part_init) {
-            Dictionary<int, int> partition;
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Restart();
+        
+        public static Dendrogram GenerateDendrogram(Graph graph) {
+            Dictionary<int, int> partition;            
 
             // Special case, when there is no link, the best partition is everyone in its own community.
             if (graph.NumberOfEdges == 0) {
@@ -67,7 +57,7 @@ namespace LouvainCommunityPL {
             }
             
             Graph current_graph = new Graph(graph);
-            Status status = new Status(current_graph, part_init);
+            Status status = new Status(current_graph);
             double mod = status.Modularity();
             List<Dictionary<int, int>> status_list = new List<Dictionary<int, int>>();
             status.OneLevel(current_graph);
@@ -81,7 +71,7 @@ namespace LouvainCommunityPL {
                 status_list.Add(partition);
                 mod = new_mod;
                 current_graph = current_graph.Quotient(partition);
-                status = new Status(current_graph, null);
+                status = new Status(current_graph);
                 status.OneLevel(current_graph);
                 new_mod = status.Modularity();
             } while (new_mod - mod >= MIN);
