@@ -61,11 +61,11 @@ namespace LouvainCommunityPL
             var current_graph = graph;
 
             IStatus status = new Status(current_graph);
-            double mod = status.Modularity;
+            double mod = status.CurrentModularity;
             var status_list = new List<IDictionary<int, int>>();
             OneLevel(current_graph, status);
             double new_mod;
-            new_mod = status.Modularity;
+            new_mod = status.CurrentModularity;
             
             do
             {
@@ -75,7 +75,7 @@ namespace LouvainCommunityPL
                 current_graph = current_graph.GetQuotient(partition);
                 status = new Status(current_graph);
                 OneLevel(current_graph, status);
-                new_mod = status.Modularity;
+                new_mod = status.CurrentModularity;
             }
             while (new_mod - mod >= MIN);
 
@@ -116,7 +116,7 @@ namespace LouvainCommunityPL
         {
             bool modif = true;
             int nb_pass_done = 0;
-            double cur_mod = status.Modularity;
+            double cur_mod = status.CurrentModularity;
             double new_mod = cur_mod;
 
             while (modif && nb_pass_done != Community.PASS_MAX)
@@ -129,8 +129,8 @@ namespace LouvainCommunityPL
                 {
                     int com_node = status.CurrentPartition[node];
                     double degc_totw = status.GetNodeDegree(node) / (status.TotalWeight * 2);
-                    Dictionary<int, double> neigh_communities = status.NeighCom(node, graph);
-                    status.Remove(node, com_node, neigh_communities.GetValueOrDefault(com_node));
+                    Dictionary<int, double> neigh_communities = status.GetNeighbourCommunities(node, graph);
+                    status.RemoveNodeFromCommunity(node, com_node, neigh_communities.GetValueOrDefault(com_node));
 
                     Tuple<double, int> best;
                     best = (from entry in neigh_communities.AsParallel()
@@ -138,13 +138,13 @@ namespace LouvainCommunityPL
                         .Concat(new[] { Tuple.Create(0.0, com_node) }.AsParallel())
                         .Max();
                     int best_com = best.Item2;
-                    status.Insert(node, best_com, neigh_communities.GetValueOrDefault(best_com));
+                    status.AddNodeToCommunity(node, best_com, neigh_communities.GetValueOrDefault(best_com));
                     if (best_com != com_node)
                     {
                         modif = true;
                     }
                 }
-                new_mod = status.Modularity;
+                new_mod = status.CurrentModularity;
                 if (new_mod - cur_mod < MIN)
                 {
                     break;

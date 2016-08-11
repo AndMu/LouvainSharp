@@ -21,7 +21,7 @@ namespace LouvainCommunityPL
         /// Get the modularity of the partition of the graph fast using precomputed status.
         /// </summary>
         /// <returns></returns>
-        public double Modularity
+        public double CurrentModularity
         {
             get
             {
@@ -70,7 +70,7 @@ namespace LouvainCommunityPL
         /// <param name="node"></param>
         /// <param name="graph"></param>
         /// <returns></returns>
-        public Dictionary<int, double> NeighCom(int node, IGraph graph)
+        public Dictionary<int, double> GetNeighbourCommunities(int node, IGraph graph)
         {
             Dictionary<int, double> weights = new Dictionary<int, double>();
             foreach (Edge edge in graph.GetIncidentEdges(node))
@@ -90,7 +90,7 @@ namespace LouvainCommunityPL
         /// <param name="node"></param>
         /// <param name="com"></param>
         /// <param name="weight"></param>
-        public void Remove(int node, int com, double weight)
+        public void RemoveNodeFromCommunity(int node, int com, double weight)
         {
             m_CommunityDegrees[com] = m_CommunityDegrees.GetValueOrDefault(com) - m_NodeDegrees.GetValueOrDefault(node);
             m_CommunityInternalWeights[com] = m_CommunityInternalWeights.GetValueOrDefault(com) - weight - m_SelfLoopWeights.GetValueOrDefault(node);
@@ -103,7 +103,7 @@ namespace LouvainCommunityPL
         /// <param name="node"></param>
         /// <param name="com"></param>
         /// <param name="weight"></param>
-        public void Insert(int node, int com, double weight)
+        public void AddNodeToCommunity(int node, int com, double weight)
         {
             m_NodeToCommunities[node] = com;
             m_CommunityDegrees[com] = m_CommunityDegrees.GetValueOrDefault(com) + m_NodeDegrees.GetValueOrDefault(node);

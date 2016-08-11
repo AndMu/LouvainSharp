@@ -6,15 +6,16 @@ namespace LouvainCommunityPL
     {
         double TotalWeight { get; }
 
-        double Modularity { get; }
+        double CurrentModularity { get; }
 
         IReadOnlyDictionary<int, int> CurrentPartition { get; }
 
-        Dictionary<int, double> NeighCom(int node, IGraph graph);
 
-        void Remove(int node, int com, double weight);
+        Dictionary<int, double> GetNeighbourCommunities(int node, IGraph graph);
 
-        void Insert(int node, int com, double weight);
+        void RemoveNodeFromCommunity(int node, int com, double weight);
+
+        void AddNodeToCommunity(int node, int com, double weight);
 
         double GetCommunityDegree(int community);
 
