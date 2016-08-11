@@ -7,7 +7,7 @@ namespace LouvainCommunityPL
     /// <summary>
     /// To handle several pieces of data for the algorithm in one structure.
     /// </summary>
-    class Status
+    class Status : IStatus
     {
         readonly Dictionary<int, int> m_NodeToCommunities = new Dictionary<int, int>();
         readonly Dictionary<int, double> m_CommunityDegrees = new Dictionary<int, double>();

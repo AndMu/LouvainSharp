@@ -60,7 +60,7 @@ namespace LouvainCommunityPL
 
             var current_graph = graph;
 
-            Status status = new Status(current_graph);
+            IStatus status = new Status(current_graph);
             double mod = status.Modularity;
             var status_list = new List<IDictionary<int, int>>();
             OneLevel(current_graph, status);
@@ -111,9 +111,8 @@ namespace LouvainCommunityPL
 
         /// <summary>
         /// Compute one level of communities.
-        /// </summary>
-        /// <param name="graph">The graph to use.</param>
-        static void OneLevel(IGraph graph, Status status)
+        /// </summary>        
+        static void OneLevel(IGraph graph, IStatus status)
         {
             bool modif = true;
             int nb_pass_done = 0;
@@ -156,7 +155,7 @@ namespace LouvainCommunityPL
         /// <summary>
         /// Used in parallelized OneLevel
         /// </summary>
-        static Tuple<double, int> EvaluateIncrease(Status status, int com, double dnc, double degc_totw)
+        static Tuple<double, int> EvaluateIncrease(IStatus status, int com, double dnc, double degc_totw)
         {
             double incr = dnc - status.GetCommunityDegree(com) * degc_totw;
             return Tuple.Create(incr, com);
