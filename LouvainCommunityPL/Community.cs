@@ -35,13 +35,13 @@ namespace LouvainCommunityPL
         /// and values are communities.
         /// </param>
         /// <returns>The partition, with communities number from 0 onward, sequentially</returns>
-        public static Dictionary<int, int> BestPartition(Graph graph)
+        public static Dictionary<int, int> BestPartition(IGraph graph)
         {
             Dendrogram dendro = GenerateDendrogram(graph);
             return dendro.PartitionAtLevel(dendro.Length - 1);
         }
 
-        static Dendrogram GenerateDendrogram(Graph graph)
+        static Dendrogram GenerateDendrogram(IGraph graph)
         {
             IDictionary<int, int> partition;
 
@@ -58,7 +58,7 @@ namespace LouvainCommunityPL
                 return new Dendrogram(partition);
             }
 
-            var current_graph = new Graph(graph);
+            var current_graph = graph;
 
             Status status = new Status(current_graph);
             double mod = status.Modularity;
@@ -113,7 +113,7 @@ namespace LouvainCommunityPL
         /// Compute one level of communities.
         /// </summary>
         /// <param name="graph">The graph to use.</param>
-        static void OneLevel(Graph graph, Status status)
+        static void OneLevel(IGraph graph, Status status)
         {
             bool modif = true;
             int nb_pass_done = 0;

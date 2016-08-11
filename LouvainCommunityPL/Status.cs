@@ -53,7 +53,7 @@ namespace LouvainCommunityPL
             Internals = new Dictionary<int, double>();
         }
 
-        public Status(Graph graph) : this()
+        public Status(IGraph graph) : this()
         {            
             int count = 0;
             this.TotalWeight = graph.TotalWeight;
@@ -66,7 +66,7 @@ namespace LouvainCommunityPL
                     throw new ArgumentException("Graph has negative weights.");
                 }
                 Degrees[count] = GDegrees[node] = deg;
-                Internals[count] = Loops[node] = graph.EdgeWeight(node, node, 0);
+                Internals[count] = Loops[node] = graph.EdgeWeight(node, node);
                 count += 1;
             }
         }
@@ -78,10 +78,10 @@ namespace LouvainCommunityPL
         /// <param name="node"></param>
         /// <param name="graph"></param>
         /// <returns></returns>
-        public Dictionary<int, double> NeighCom(int node, Graph graph)
+        public Dictionary<int, double> NeighCom(int node, IGraph graph)
         {
             Dictionary<int, double> weights = new Dictionary<int, double>();
-            foreach (Graph.Edge edge in graph.IncidentEdges(node))
+            foreach (Edge edge in graph.IncidentEdges(node))
             {
                 if (!edge.SelfLoop)
                 {

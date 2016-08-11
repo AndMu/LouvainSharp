@@ -8,54 +8,24 @@ namespace LouvainCommunityPL
     /// Represents an undirected graph.
     /// Written from scratch by Kyle Miller (v-kymil@microsoft.com) February 2014
     /// </summary>
-    public class Graph
+    public class Graph : IGraph
     {
-        /// <summary>
-        /// Represents a weighted edge between nodes.
-        /// </summary>
-        public struct Edge
-        {
-            public int FromNode;
-            public int ToNode;
-            public double Weight;
-
-            /// <summary>
-            /// Constructs a weighted edge between two nodes.
-            /// </summary>
-            /// <param name="n1">The first node.</param>
-            /// <param name="n2">The second node.</param>
-            /// <param name="w">The edge's weight.</param>
-            public Edge(int n1, int n2, double w)
-            {
-                FromNode = n1;
-                ToNode = n2;
-                Weight = w;
-            }
-
-            /// <summary>
-            /// True iff the two nodes of the edge are the same.
-            /// </summary>
-            public bool SelfLoop
-            {
-                get { return FromNode == ToNode; }
-            }
-        }
-
-        private Dictionary<int, Dictionary<int, double>> AdjacencyMatrix;
+       
+        private Dictionary<int, Dictionary<int, double>> m_AdjacencyMatrix;
         private int NumEdges = 0;
         private double CurrSize = 0;
 
         public Graph()
         {
-            AdjacencyMatrix = new Dictionary<int, Dictionary<int, double>>();
+            m_AdjacencyMatrix = new Dictionary<int, Dictionary<int, double>>();
         }
 
         public Graph(Graph g)
         {
-            this.AdjacencyMatrix = new Dictionary<int, Dictionary<int, double>>();
-            foreach (var ilist in g.AdjacencyMatrix)
+            this.m_AdjacencyMatrix = new Dictionary<int, Dictionary<int, double>>();
+            foreach (var ilist in g.m_AdjacencyMatrix)
             {
-                this.AdjacencyMatrix[ilist.Key] = new Dictionary<int, double>(ilist.Value);
+                this.m_AdjacencyMatrix[ilist.Key] = new Dictionary<int, double>(ilist.Value);
             }
             this.NumEdges = g.NumEdges;
             this.CurrSize = g.CurrSize;
@@ -115,9 +85,9 @@ namespace LouvainCommunityPL
         private Dictionary<int, double> EnsureIncidenceList(int node)
         {
             Dictionary<int, double> ilist;
-            if (!AdjacencyMatrix.TryGetValue(node, out ilist))
+            if (!m_AdjacencyMatrix.TryGetValue(node, out ilist))
             {
-                ilist = AdjacencyMatrix[node] = new Dictionary<int, double>();
+                ilist = m_AdjacencyMatrix[node] = new Dictionary<int, double>();
             }
             return ilist;
         }
@@ -147,8 +117,8 @@ namespace LouvainCommunityPL
         public double Degree(int node)
         {
             double loop;
-            AdjacencyMatrix[node].TryGetValue(node, out loop); // since self loop has two ends
-            return AdjacencyMatrix[node].Values.Sum() + loop;
+            m_AdjacencyMatrix[node].TryGetValue(node, out loop); // since self loop has two ends
+            return m_AdjacencyMatrix[node].Values.Sum() + loop;
         }
 
         /// <summary>
@@ -156,7 +126,7 @@ namespace LouvainCommunityPL
         /// </summary>
         public IEnumerable<int> Nodes
         {
-            get { return AdjacencyMatrix.Keys; }
+            get { return m_AdjacencyMatrix.Keys; }
         }
 
         /// <summary>
@@ -166,7 +136,7 @@ namespace LouvainCommunityPL
         {
             get
             {
-                foreach (var entry1 in AdjacencyMatrix)
+                foreach (var entry1 in m_AdjacencyMatrix)
                 {
                     foreach (var entry2 in entry1.Value)
                     {
@@ -188,7 +158,7 @@ namespace LouvainCommunityPL
         public IEnumerable<Edge> IncidentEdges(int node)
         {
             Dictionary<int, double> incidence;
-            if (AdjacencyMatrix.TryGetValue(node, out incidence))
+            if (m_AdjacencyMatrix.TryGetValue(node, out incidence))
             {
                 foreach (var entry in incidence)
                 {
@@ -208,17 +178,17 @@ namespace LouvainCommunityPL
         /// <param name="node2">The second node.</param>
         /// <param name="defaultValue">The default value to return if there is no such edge.</param>
         /// <returns>The weight of the edge (or the default value).</returns>
-        public double EdgeWeight(int node1, int node2, double defaultValue)
+        public double EdgeWeight(int node1, int node2)
         {
             Dictionary<int, double> ilist;
-            if (!AdjacencyMatrix.TryGetValue(node1, out ilist))
+            if (!m_AdjacencyMatrix.TryGetValue(node1, out ilist))
             {
                 throw new IndexOutOfRangeException("No such node " + node1);
             }
             double value;
             if (!ilist.TryGetValue(node2, out value))
             {
-                return defaultValue;
+                return 0;
             }
             else
             {
@@ -235,7 +205,7 @@ namespace LouvainCommunityPL
         /// </summary>
         /// <param name="partition">A dictionary where keys are graph nodes and values are the community to which the node belongs.</param>
         /// <returns>The quotient graph.</returns>
-        public Graph Quotient(IDictionary<int, int> partition)
+        public IGraph Quotient(IDictionary<int, int> partition)
         {
             Graph ret = new Graph();
             foreach (int com in partition.Values)
