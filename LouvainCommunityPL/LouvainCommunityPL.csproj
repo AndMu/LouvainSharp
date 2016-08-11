@@ -64,6 +64,7 @@
   <ItemGroup>
     <Compile Include="Community.cs" />
     <Compile Include="Dendogram.cs" />
+    <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="Graph.cs" />
     <Compile Include="Modularity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
