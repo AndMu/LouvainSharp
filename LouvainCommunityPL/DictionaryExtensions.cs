@@ -1,4 +1,14 @@
-﻿using System.Collections;
+﻿// -----------------------------------------------------------------------------------------------------------
+//  Copyright (c) 2016, Andreas Grünwald
+//  Licensed under the MIT License. 
+//  
+//  This software was derieved from "LouvainSharp" by markusmobius, which was licensed under the MIT License   
+//  Copyright (c) 2015 markusmobius
+//  https://github.com/markusmobius/LouvainSharp
+//
+// -----------------------------------------------------------------------------------------------------------
+
+using System.Collections;
 using System.Collections.Generic;
 
 namespace LouvainCommunityPL
